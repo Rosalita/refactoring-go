@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"golang.org/x/text/currency"
 )
 
-type Invoices []struct {
+type Invoice struct {
 	Customer     string        `json:"customer"`
 	Performances []Performance `json:"performances"`
 }
@@ -19,6 +21,10 @@ type Performance struct {
 type Play struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
+}
+
+func format(amount float64) string {
+	return fmt.Sprintf("%+v", currency.USD.Amount(amount))
 }
 
 func main() {
@@ -38,16 +44,19 @@ func main() {
 		fmt.Println(err)
 	}
 
-	var invoices Invoices
-	if err := json.Unmarshal(invoiceFile, &invoices); err != nil {
+	var invoice Invoice
+	if err := json.Unmarshal(invoiceFile, &invoice); err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println(plays)
-	fmt.Println(invoices)
+	statement(invoice, plays)
 
 }
 
-func statement(invoice string, plays map[string]Play) {
+func statement(invoice Invoice, plays map[string]Play) {
+	// totalAmount := 0
+	// volumeCredits := 0
+	// result := fmt.Sprintf("Statement for %s \n", invoice.Customer)
 
+	fmt.Println(invoice.Performances)
 }
