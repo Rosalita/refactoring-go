@@ -1,5 +1,5 @@
 // Imagine a company of theatrical players who go out to various
-// events performing plays. Typically a customer will request a play and the 
+// events performing plays. Typically a customer will request a play and the
 // company charges them based on the size of the audience and the kind
 // of play they perform. There are currently two kinds of plays that
 // the players perform: tragedies and comedies. As well as providing a
@@ -7,7 +7,7 @@
 // "volume credits", a loyalty mechanism they can use for discounts on
 // future performances.
 
-// The performers store data about their plays in a JSON file called 
+// The performers store data about their plays in a JSON file called
 // plays.json. They store data for their bills in a file called invoices.json
 // The code that prints the bill is a function called statement.
 
@@ -114,25 +114,25 @@ func statement(invoice Invoice, plays map[string]Play) (string, error) {
 	return result.String(), nil
 }
 
-func amountFor(perf Performance, play Play) (int, error){
-	thisAmount := 0
+func amountFor(perf Performance, play Play) (int, error) {
+	var result int
 
 	switch play.Type {
 	case "tragedy":
-		thisAmount = 40000
+		result = 40000
 		if perf.Audience > 30 {
-			thisAmount += 1000 * (perf.Audience - 30)
+			result += 1000 * (perf.Audience - 30)
 		}
 	case "comedy":
-		thisAmount = 30000
+		result = 30000
 		if perf.Audience > 20 {
-			thisAmount += 10000 + 500*(perf.Audience-20)
+			result += 10000 + 500*(perf.Audience-20)
 		}
-		thisAmount += 300 * perf.Audience
+		result += 300 * perf.Audience
 
 	default:
-		return 0, fmt.Errorf("error: unknown performance type %s", play.Type)
+		return result, fmt.Errorf("error: unknown performance type %s", play.Type)
 	}
 
-	return thisAmount, nil
+	return result, nil
 }
