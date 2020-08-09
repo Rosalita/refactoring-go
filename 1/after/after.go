@@ -90,23 +90,10 @@ func statement(invoice Invoice, plays map[string]Play) (string, error) {
 
 	for _, perf := range invoice.Performances {
 		play := plays[perf.PlayID]
-		thisAmount := 0
 
-		switch play.Type {
-		case "tragedy":
-			thisAmount = 40000
-			if perf.Audience > 30 {
-				thisAmount += 1000 * (perf.Audience - 30)
-			}
-		case "comedy":
-			thisAmount = 30000
-			if perf.Audience > 20 {
-				thisAmount += 10000 + 500*(perf.Audience-20)
-			}
-			thisAmount += 300 * perf.Audience
-
-		default:
-			return "", fmt.Errorf("error: unknown performance type %s", play.Type)
+		thisAmount, err := amountFor(perf, play)
+		if err != nil {
+			return "", err
 		}
 
 		// add volume credits
@@ -125,4 +112,27 @@ func statement(invoice Invoice, plays map[string]Play) (string, error) {
 	result.WriteString(fmt.Sprintf("Amount owed is %s\n", format(float64(totalAmount)/100)))
 	result.WriteString(fmt.Sprintf("You earned %d credits\n", volumeCredits))
 	return result.String(), nil
+}
+
+func amountFor(perf Performance, play Play) (int, error){
+	thisAmount := 0
+
+	switch play.Type {
+	case "tragedy":
+		thisAmount = 40000
+		if perf.Audience > 30 {
+			thisAmount += 1000 * (perf.Audience - 30)
+		}
+	case "comedy":
+		thisAmount = 30000
+		if perf.Audience > 20 {
+			thisAmount += 10000 + 500*(perf.Audience-20)
+		}
+		thisAmount += 300 * perf.Audience
+
+	default:
+		return 0, fmt.Errorf("error: unknown performance type %s", play.Type)
+	}
+
+	return thisAmount, nil
 }
