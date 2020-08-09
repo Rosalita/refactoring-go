@@ -45,21 +45,16 @@ type Play struct {
 	Type string `json:"type"`
 }
 
+var playForFunc func(Performance) Play
+
 func format(amount float64) string {
 	return fmt.Sprintf("%+v", currency.USD.Amount(amount))
 }
 
 func main() {
 
-	playsFile, err := ioutil.ReadFile("plays.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var plays map[string]Play
-	if err := json.Unmarshal(playsFile, &plays); err != nil {
-		fmt.Println(err)
-	}
+	// Global variable used for mock injection
+	playForFunc = playFor
 
 	invoiceFile, err := ioutil.ReadFile("invoices.json")
 	if err != nil {
@@ -71,7 +66,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	result, err := statement(invoice, plays)
+	result, err := statement(invoice)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -79,7 +74,7 @@ func main() {
 	fmt.Println(result)
 }
 
-func statement(invoice Invoice, plays map[string]Play) (string, error) {
+func statement(invoice Invoice) (string, error) {
 
 	totalAmount := 0
 	var volumeCredits int
@@ -89,7 +84,7 @@ func statement(invoice Invoice, plays map[string]Play) (string, error) {
 	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
 
 	for _, perf := range invoice.Performances {
-		play := plays[perf.PlayID]
+		play := playForFunc(perf)
 
 		thisAmount, err := amountFor(perf, play)
 		if err != nil {
@@ -135,4 +130,17 @@ func amountFor(perf Performance, play Play) (int, error) {
 	}
 
 	return result, nil
+}
+
+func playFor(perf Performance) Play{
+	playsFile, err := ioutil.ReadFile("plays.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var plays map[string]Play
+	if err := json.Unmarshal(playsFile, &plays); err != nil {
+		fmt.Println(err)
+	}
+	return plays[perf.PlayID]
 }

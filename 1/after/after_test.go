@@ -5,24 +5,40 @@ package main
 
 import (
 	"errors"
+	"flag"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMain(m *testing.M) {
+
+	flag.Parse()
+	// Test setup
+	playForFunc = mockPlayForFunc
+
+	// Run tests
+	exitCode := m.Run()
+
+	// Test teardown
+	os.Exit(exitCode)
+}
+
+func mockPlayForFunc(perf Performance) Play {
+	switch perf.PlayID {
+	case "shrew":
+		return Play{Name: "The Taming of the Shrew", Type: "comedy"}
+	case "a-and-c":
+		return Play{Name: "Antony and Cleopatra", Type: "tragedy"}
+	case "foo":
+		return Play{Name: "Foo Bar", Type: "baz"}
+	}
+
+	return Play{}
+}
+
 func TestStatement(t *testing.T) {
-
-	comedyPlays := map[string]Play{
-		"shrew": {Name: "The Taming of the Shrew", Type: "comedy"},
-	}
-
-	tragedyPlays := map[string]Play{
-		"a-and-c": {Name: "Antony and Cleopatra", Type: "tragedy"},
-	}
-
-	unknownPlays := map[string]Play{
-		"foo": {Name: "Foo Bar", Type: "baz"},
-	}
 
 	comedySmallInvoice := Invoice{
 		Customer:     "Rosie",
@@ -51,34 +67,33 @@ func TestStatement(t *testing.T) {
 
 	tests := []struct {
 		invoice        Invoice
-		plays          map[string]Play
 		expectedResult string
 		err            error
 	}{
-		{comedySmallInvoice, comedyPlays,
+		{comedySmallInvoice,
 			"Statement for Rosie \n" +
 				"The Taming of the Shrew: USD 360.00 (20 seats) \n" +
 				"Amount owed is USD 360.00\nYou earned 4 credits\n",
 			nil},
-		{comedyLargeInvoice, comedyPlays,
+		{comedyLargeInvoice,
 			"Statement for Rosie \n" +
 				"The Taming of the Shrew: USD 1900.00 (200 seats) \n" +
 				"Amount owed is USD 1900.00\nYou earned 210 credits\n",
 			nil},
-		{tragedySmallInvoice, tragedyPlays,
+		{tragedySmallInvoice,
 			"Statement for Rosie \n" +
 				"Antony and Cleopatra: USD 400.00 (20 seats) \n" +
 				"Amount owed is USD 400.00\nYou earned 0 credits\n",
 			nil},
-		{tragedyLargeInvoice, tragedyPlays,
+		{tragedyLargeInvoice,
 			"Statement for Rosie \n" +
 				"Antony and Cleopatra: USD 2100.00 (200 seats) \n" +
 				"Amount owed is USD 2100.00\nYou earned 170 credits\n",
 			nil},
-		{unknownInvoice, unknownPlays, "", errors.New("error: unknown performance type baz")},
+		{unknownInvoice, "", errors.New("error: unknown performance type baz")},
 	}
 	for _, test := range tests {
-		result, err := statement(test.invoice, test.plays)
+		result, err := statement(test.invoice)
 		assert.Equal(t, test.expectedResult, result)
 		assert.Equal(t, test.err, err)
 	}
