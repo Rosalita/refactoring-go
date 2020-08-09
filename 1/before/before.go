@@ -1,3 +1,23 @@
+// Imagine a company of theatrical players who go out to various
+// events performing plays. Typically a customer will request a play and the 
+// company charges them based on the size of the audience and the kind
+// of play they perform. There are currently two kinds of plays that
+// the players perform: tragedies and comedies. As well as providing a
+// bill for the performance, the company gives is it's customers
+// "volume credits", a loyalty mechanism they can use for discounts on
+// future performances.
+
+// The performers store data about their plays in a JSON file called 
+// plays.json. They store data for their bills in a file called invoices.json
+// The code that prints the bill is a function called statement.
+
+// Running this code on the test data files results in the following output:
+// Hamlet: USD 650.00 (55 seats)
+// As You Like It: USD 580.00 (35 seats)
+// Othello: USD 500.00 (40 seats)
+// Amount owed is USD 1730.00
+// You earned 47 credits
+
 package main
 
 import (
