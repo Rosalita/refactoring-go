@@ -45,7 +45,7 @@ type Play struct {
 	Type string `json:"type"`
 }
 
-var playForFunc func(Performance) Play
+var playFor func(Performance) Play
 
 func format(amount float64) string {
 	return fmt.Sprintf("%+v", currency.USD.Amount(amount))
@@ -54,7 +54,7 @@ func format(amount float64) string {
 func main() {
 
 	// Global variable used for mock injection
-	playForFunc = playFor
+	playFor = playForFunc
 
 	invoiceFile, err := ioutil.ReadFile("invoices.json")
 	if err != nil {
@@ -84,9 +84,9 @@ func statement(invoice Invoice) (string, error) {
 	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
 
 	for _, perf := range invoice.Performances {
-		play := playForFunc(perf)
+		//play := playFor(perf)
 
-		thisAmount, err := amountFor(perf, play)
+		thisAmount, err := amountFor(perf, playFor(perf))
 		if err != nil {
 			return "", err
 		}
@@ -95,12 +95,12 @@ func statement(invoice Invoice) (string, error) {
 		volumeCredits += int(math.Max(float64(perf.Audience)-30, 0))
 		// add extra credit for every ten comedy attendees
 
-		if "comedy" == play.Type {
+		if "comedy" == playFor(perf).Type {
 			volumeCredits += int(math.Floor(float64(perf.Audience) / 5))
 		}
 
 		// print line for this order
-		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", play.Name, format(float64(thisAmount/100)), perf.Audience))
+		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", playFor(perf).Name, format(float64(thisAmount/100)), perf.Audience))
 		totalAmount += thisAmount
 
 	}
@@ -132,7 +132,7 @@ func amountFor(perf Performance, play Play) (int, error) {
 	return result, nil
 }
 
-func playFor(perf Performance) Play{
+func playForFunc(perf Performance) Play{
 	playsFile, err := ioutil.ReadFile("plays.json")
 	if err != nil {
 		fmt.Println(err)

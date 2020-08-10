@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 
 	flag.Parse()
 	// Test setup
-	playForFunc = mockPlayForFunc
+	playFor = mockPlayFor
 
 	// Run tests
 	exitCode := m.Run()
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func mockPlayForFunc(perf Performance) Play {
+func mockPlayFor(perf Performance) Play {
 	switch perf.PlayID {
 	case "shrew":
 		return Play{Name: "The Taming of the Shrew", Type: "comedy"}
