@@ -10,3 +10,5 @@ Martin Fowlers refactoring book adapted to Go
 # Learning
 - It might not be a good idea to pass data down to a function, if that function can be empowered to read the data for itself.
   This is replacing 'temp with query' e.g. replacing a temporary variable with a function that knows how to find the value.
+- If you see a function with the wrong name, change it as soon as you understand what a better name could be. Then you won't
+  have to figure out what it does again.

@@ -102,12 +102,12 @@ func statement(invoice Invoice) (string, error) {
 }
 
 func volumeCreditsFor(perf Performance) int{
-	var volumeCredits int 
-	volumeCredits += int(math.Max(float64(perf.Audience)-30, 0))
+	var result int 
+	result += int(math.Max(float64(perf.Audience)-30, 0))
 	if "comedy" == playFor(perf).Type {
-		volumeCredits += int(math.Floor(float64(perf.Audience) / 5))
+		result += int(math.Floor(float64(perf.Audience) / 5))
 	}
-	return volumeCredits
+	return result
 }
 
 func amountFor(perf Performance) (int, error) {
