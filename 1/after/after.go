@@ -86,7 +86,7 @@ func statement(invoice Invoice) (string, error) {
 	for _, perf := range invoice.Performances {
 		//play := playFor(perf)
 
-		thisAmount, err := amountFor(perf, playFor(perf))
+		thisAmount, err := amountFor(perf)
 		if err != nil {
 			return "", err
 		}
@@ -109,10 +109,10 @@ func statement(invoice Invoice) (string, error) {
 	return result.String(), nil
 }
 
-func amountFor(perf Performance, play Play) (int, error) {
+func amountFor(perf Performance) (int, error) {
 	var result int
 
-	switch play.Type {
+	switch playFor(perf).Type {
 	case "tragedy":
 		result = 40000
 		if perf.Audience > 30 {
@@ -126,13 +126,13 @@ func amountFor(perf Performance, play Play) (int, error) {
 		result += 300 * perf.Audience
 
 	default:
-		return result, fmt.Errorf("error: unknown performance type %s", play.Type)
+		return result, fmt.Errorf("error: unknown performance type %s", playFor(perf).Type)
 	}
 
 	return result, nil
 }
 
-func playForFunc(perf Performance) Play{
+func playForFunc(perf Performance) Play {
 	playsFile, err := ioutil.ReadFile("plays.json")
 	if err != nil {
 		fmt.Println(err)
