@@ -84,22 +84,14 @@ func statement(invoice Invoice) (string, error) {
 	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
 
 	for _, perf := range invoice.Performances {
-		//play := playFor(perf)
 
 		thisAmount, err := amountFor(perf)
 		if err != nil {
 			return "", err
 		}
 
-		// add volume credits
-		volumeCredits += int(math.Max(float64(perf.Audience)-30, 0))
-		// add extra credit for every ten comedy attendees
+		volumeCredits += volumeCreditsFor(perf)
 
-		if "comedy" == playFor(perf).Type {
-			volumeCredits += int(math.Floor(float64(perf.Audience) / 5))
-		}
-
-		// print line for this order
 		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", playFor(perf).Name, format(float64(thisAmount/100)), perf.Audience))
 		totalAmount += thisAmount
 
@@ -107,6 +99,15 @@ func statement(invoice Invoice) (string, error) {
 	result.WriteString(fmt.Sprintf("Amount owed is %s\n", format(float64(totalAmount)/100)))
 	result.WriteString(fmt.Sprintf("You earned %d credits\n", volumeCredits))
 	return result.String(), nil
+}
+
+func volumeCreditsFor(perf Performance) int{
+	var volumeCredits int 
+	volumeCredits += int(math.Max(float64(perf.Audience)-30, 0))
+	if "comedy" == playFor(perf).Type {
+		volumeCredits += int(math.Floor(float64(perf.Audience) / 5))
+	}
+	return volumeCredits
 }
 
 func amountFor(perf Performance) (int, error) {
