@@ -75,7 +75,6 @@ func statement(invoice Invoice) (string, error) {
 	var result strings.Builder
 	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
 
-	var totalAmount int
 	for _, perf := range invoice.Performances {
 
 		thisAmount, err := amountFor(perf)
@@ -84,10 +83,9 @@ func statement(invoice Invoice) (string, error) {
 		}
 
 		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", playFor(perf).Name, usd(float64(thisAmount)), perf.Audience))
-		totalAmount += thisAmount
 	}
 
-	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(float64(totalAmount))))
+	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(totalAmount(invoice.Performances))))
 	result.WriteString(fmt.Sprintf("You earned %d credits\n", totalVolumeCredits(invoice.Performances)))
 	return result.String(), nil
 }
@@ -96,12 +94,24 @@ func usd(amount float64) string {
 	return fmt.Sprintf("%+v", currency.USD.Amount(amount/100))
 }
 
-func totalVolumeCredits(performances []Performance) int {
-	var volumeCredits int
+func totalAmount(performances []Performance) float64 {
+	var result float64
 	for _, perf := range performances {
-		volumeCredits += volumeCreditsFor(perf)
+		amount, err := amountFor(perf)
+		if err != nil {
+			fmt.Println(err)
+		}
+		result += float64(amount)
 	}
-	return volumeCredits
+	return result
+}
+
+func totalVolumeCredits(performances []Performance) int {
+	var result int
+	for _, perf := range performances {
+		result += volumeCreditsFor(perf)
+	}
+	return result
 }
 
 func volumeCreditsFor(perf Performance) int {
@@ -132,7 +142,6 @@ func amountFor(perf Performance) (int, error) {
 	default:
 		return result, fmt.Errorf("error: unknown performance type %s", playFor(perf).Type)
 	}
-
 	return result, nil
 }
 
