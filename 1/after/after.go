@@ -49,7 +49,7 @@ var playFor func(Performance) Play
 
 func main() {
 
-	// Global variable used for mock injection
+	// Global variable used for test mock injection
 	playFor = playForFunc
 
 	invoiceFile, err := ioutil.ReadFile("invoices.json")
@@ -87,18 +87,21 @@ func statement(invoice Invoice) (string, error) {
 		totalAmount += thisAmount
 	}
 
-	var volumeCredits int
-	for _, perf := range invoice.Performances {
-		volumeCredits += volumeCreditsFor(perf)
-	}
-
 	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(float64(totalAmount))))
-	result.WriteString(fmt.Sprintf("You earned %d credits\n", volumeCredits))
+	result.WriteString(fmt.Sprintf("You earned %d credits\n", totalVolumeCredits(invoice.Performances)))
 	return result.String(), nil
 }
 
 func usd(amount float64) string {
 	return fmt.Sprintf("%+v", currency.USD.Amount(amount/100))
+}
+
+func totalVolumeCredits(performances []Performance) int {
+	var volumeCredits int
+	for _, perf := range performances {
+		volumeCredits += volumeCreditsFor(perf)
+	}
+	return volumeCredits
 }
 
 func volumeCreditsFor(perf Performance) int {
