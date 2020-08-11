@@ -60,6 +60,15 @@ func TestStatement(t *testing.T) {
 		Performances: []Performance{{PlayID: "a-and-c", Audience: 200}},
 	}
 
+	multiplePerformances := Invoice{
+		Customer: "Rosie",
+		Performances: []Performance{
+			{PlayID: "a-and-c", Audience: 200},
+			{PlayID: "shrew", Audience: 200},
+			{PlayID: "a-and-c", Audience: 20},
+		},
+	}
+
 	unknownInvoice := Invoice{
 		Customer:     "Rosie",
 		Performances: []Performance{{PlayID: "foo", Audience: 200}},
@@ -89,6 +98,13 @@ func TestStatement(t *testing.T) {
 			"Statement for Rosie \n" +
 				"Antony and Cleopatra: USD 2100.00 (200 seats) \n" +
 				"Amount owed is USD 2100.00\nYou earned 170 credits\n",
+			nil},
+		{multiplePerformances,
+			"Statement for Rosie \n" +
+				"Antony and Cleopatra: USD 2100.00 (200 seats) \n" +
+				"The Taming of the Shrew: USD 1900.00 (200 seats) \n" +
+				"Antony and Cleopatra: USD 400.00 (20 seats) \n" +
+				"Amount owed is USD 4400.00\nYou earned 380 credits\n",
 			nil},
 		{unknownInvoice, "", errors.New("error: unknown performance type baz")},
 	}
