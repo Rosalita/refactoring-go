@@ -36,13 +36,23 @@ type Invoice struct {
 }
 
 type Performance struct {
-	PlayID   string `json:"playID"`
-	Audience int    `json:"audience"`
+	PlayID        string `json:"playID"`
+	Audience      int    `json:"audience"`
+	Play          Play  
+	Amount        int
+	VolumeCredits int
 }
 
 type Play struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
+}
+
+type StatementData struct {
+	Customer           string
+	Performances       []Performance
+	TotalAmount        float64
+	TotalVolumeCredits int
 }
 
 var playFor func(Performance) Play
@@ -70,25 +80,54 @@ func main() {
 	fmt.Println(result)
 }
 
-func renderPlainText(invoice Invoice) (string, error) {
+func renderPlainText(data StatementData) (string, error) {
 	var result strings.Builder
-	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
+	result.WriteString(fmt.Sprintf("Statement for %s \n", data.Customer))
 
-	for _, perf := range invoice.Performances {
-		thisAmount, err := amountFor(perf)
-		if err != nil {
-			return "", err
-		}
-
-		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", playFor(perf).Name, usd(float64(thisAmount)), perf.Audience))
+	for _, perf := range data.Performances {
+		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", perf.Play.Name, usd(float64(perf.Amount)), perf.Audience))
 	}
-	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(totalAmount(invoice.Performances))))
-	result.WriteString(fmt.Sprintf("You earned %d credits\n", totalVolumeCredits(invoice.Performances)))
+	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(data.TotalAmount)))
+	result.WriteString(fmt.Sprintf("You earned %d credits\n", data.TotalVolumeCredits))
 	return result.String(), nil
 }
 
 func statement(invoice Invoice) (string, error) {
-	return renderPlainText(invoice)
+	var enrichedPerformances []Performance
+	for _, perf := range invoice.Performances {
+		enrichedPerf, err := enrichPerformance(perf)
+		if err != nil {
+			return "", err
+		}
+		enrichedPerformances = append(enrichedPerformances, *enrichedPerf)
+	}
+
+	statementData := StatementData{
+		Customer:           invoice.Customer,
+		Performances:       enrichedPerformances,
+		TotalAmount:        totalAmount(enrichedPerformances),
+		TotalVolumeCredits: totalVolumeCredits(enrichedPerformances),
+	}
+	return renderPlainText(statementData)
+}
+
+func enrichPerformance(perf Performance) (*Performance, error) {
+	perf.Play = playFor(perf)
+	amount, err := amountFor(perf)
+	if err != nil {
+		return nil, err
+	}
+	volumeCredits := volumeCreditsFor(perf)
+
+	enrichedPerf := Performance{
+		PlayID:        perf.PlayID,
+		Audience:      perf.Audience,
+		Play:          perf.Play,
+		Amount:        amount,
+		VolumeCredits: volumeCredits,
+	}
+
+	return &enrichedPerf, nil
 }
 
 func totalAmount(performances []Performance) float64 {
@@ -106,7 +145,7 @@ func totalAmount(performances []Performance) float64 {
 func totalVolumeCredits(performances []Performance) int {
 	var result int
 	for _, perf := range performances {
-		result += volumeCreditsFor(perf)
+		result += perf.VolumeCredits
 	}
 	return result
 }
@@ -140,7 +179,7 @@ func playForFunc(perf Performance) Play {
 func amountFor(perf Performance) (int, error) {
 	var result int
 
-	switch playFor(perf).Type {
+	switch perf.Play.Type {
 	case "tragedy":
 		result = 40000
 		if perf.Audience > 30 {
@@ -154,7 +193,7 @@ func amountFor(perf Performance) (int, error) {
 		result += 300 * perf.Audience
 
 	default:
-		return result, fmt.Errorf("error: unknown performance type %s", playFor(perf).Type)
+		return result, fmt.Errorf("error: unknown performance type %s", perf.Play.Type)
 	}
 	return result, nil
 }
