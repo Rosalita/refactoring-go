@@ -70,13 +70,11 @@ func main() {
 	fmt.Println(result)
 }
 
-func statement(invoice Invoice) (string, error) {
-
+func renderPlainText(invoice Invoice) (string, error) {
 	var result strings.Builder
 	result.WriteString(fmt.Sprintf("Statement for %s \n", invoice.Customer))
 
 	for _, perf := range invoice.Performances {
-
 		thisAmount, err := amountFor(perf)
 		if err != nil {
 			return "", err
@@ -84,14 +82,13 @@ func statement(invoice Invoice) (string, error) {
 
 		result.WriteString(fmt.Sprintf("%s: %s (%d seats) \n", playFor(perf).Name, usd(float64(thisAmount)), perf.Audience))
 	}
-
 	result.WriteString(fmt.Sprintf("Amount owed is %s\n", usd(totalAmount(invoice.Performances))))
 	result.WriteString(fmt.Sprintf("You earned %d credits\n", totalVolumeCredits(invoice.Performances)))
 	return result.String(), nil
 }
 
-func usd(amount float64) string {
-	return fmt.Sprintf("%+v", currency.USD.Amount(amount/100))
+func statement(invoice Invoice) (string, error) {
+	return renderPlainText(invoice)
 }
 
 func totalAmount(performances []Performance) float64 {
@@ -114,6 +111,10 @@ func totalVolumeCredits(performances []Performance) int {
 	return result
 }
 
+func usd(amount float64) string {
+	return fmt.Sprintf("%+v", currency.USD.Amount(amount/100))
+}
+
 func volumeCreditsFor(perf Performance) int {
 	var result int
 	result += int(math.Max(float64(perf.Audience)-30, 0))
@@ -121,6 +122,19 @@ func volumeCreditsFor(perf Performance) int {
 		result += int(math.Floor(float64(perf.Audience) / 5))
 	}
 	return result
+}
+
+func playForFunc(perf Performance) Play {
+	playsFile, err := ioutil.ReadFile("plays.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var plays map[string]Play
+	if err := json.Unmarshal(playsFile, &plays); err != nil {
+		fmt.Println(err)
+	}
+	return plays[perf.PlayID]
 }
 
 func amountFor(perf Performance) (int, error) {
@@ -143,17 +157,4 @@ func amountFor(perf Performance) (int, error) {
 		return result, fmt.Errorf("error: unknown performance type %s", playFor(perf).Type)
 	}
 	return result, nil
-}
-
-func playForFunc(perf Performance) Play {
-	playsFile, err := ioutil.ReadFile("plays.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var plays map[string]Play
-	if err := json.Unmarshal(playsFile, &plays); err != nil {
-		fmt.Println(err)
-	}
-	return plays[perf.PlayID]
 }

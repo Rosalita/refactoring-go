@@ -11,6 +11,7 @@ Martin Fowlers refactoring book adapted to Go
    optimisation. Once code is clear, then optimise it. If loop traversal is a bottle neck, its easy to slam two
    loops back together. But the actual iteration through even a large list is rarely a bottle neck and splitting 
    loops enables other, more powerful, optimisations.
+- "Breaking down complicated chunks into small pieces is important, as is naming things well."
 
 # Learning
 - It might not be a good idea to pass data down to a function, if that function can be empowered to read the data for itself.
