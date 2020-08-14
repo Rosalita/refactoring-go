@@ -92,6 +92,22 @@ func renderPlainText(data StatementData) (string, error) {
 	return result.String(), nil
 }
 
+func renderHTML(data StatementData) (string, error) {
+	var htmlTemplate strings.Builder
+	htmlTemplate.WriteString(fmt.Sprintf("<h1>Statement for %s</h1>\n", data.Customer))
+	htmlTemplate.WriteString("<table>\n")
+	htmlTemplate.WriteString("<tr><th>play</th><th>cost</th><th>seats</th></tr>\n")
+	for _, perf := range data.Performances {
+		htmlTemplate.WriteString(fmt.Sprintf("<tr><td>%s</td>", perf.Play.Name))
+		htmlTemplate.WriteString(fmt.Sprintf("<td>%s</td>", usd(float64(perf.Amount))))
+		htmlTemplate.WriteString(fmt.Sprintf("<td>%d</td></tr>\n", perf.Audience))
+		htmlTemplate.WriteString("</table>\n")
+	}
+	htmlTemplate.WriteString(fmt.Sprintf("<p>Amount owed is <em>%s</em></p>", usd(data.TotalAmount)))
+	htmlTemplate.WriteString(fmt.Sprintf("<p>You earned <em>%d</em> credits</p>\n", data.TotalVolumeCredits))
+	return htmlTemplate.String(), nil
+}
+
 func statement(invoice Invoice) (string, error) {
 	var enrichedPerformances []Performance
 	for _, perf := range invoice.Performances {
